@@ -1,5 +1,6 @@
-﻿using BusinessObjects;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using BusinessObjects;
+using BusinessObjects.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Repositories;
 
@@ -11,6 +12,13 @@ namespace ProductManagementAPI.Controllers
     {
         private IProductRepository productsRepository = new ProductRepository();
 
+        private readonly IMapper _mapper;
+
+        public ProductsController(IMapper mapper)
+        {
+            _mapper = mapper;
+        }
+
         //Get: api/Products
         [HttpGet]
         public List<Product> GetProducts() => productsRepository.GetProducts();
@@ -18,9 +26,10 @@ namespace ProductManagementAPI.Controllers
 
         //Post :ProductsController/Products
         [HttpPost]
-        public IActionResult PostProduct(Product product)
+        public IActionResult PostProduct([FromBody]ProductDto product)
         {
-            productsRepository.SaveProduct(product);
+            Product p = _mapper.Map<Product>(product);
+            productsRepository.SaveProduct(p);
             return NoContent();
         }
 
@@ -40,14 +49,16 @@ namespace ProductManagementAPI.Controllers
 
         //Get: ProductsController/Delete/5
         [HttpPut("id")]
-        public IActionResult UpdateProduct(int id,Product product)
+        public IActionResult UpdateProduct(int id, [FromBody] ProductDto product)
         {
             var p = productsRepository.GetProductById(id);
             if(p == null)
             {
                 return NotFound();
             }
-            productsRepository.UpdateProduct(product);
+            p = _mapper.Map<Product>(product);
+            p.ProductId = id;
+            productsRepository.UpdateProduct(p);
             return NoContent();
         }
 

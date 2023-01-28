@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AutoMapper;
 using BusinessObjects;
+using BusinessObjects.Dtos;
 using DataAccess;
 
 namespace Repositories
@@ -23,7 +25,7 @@ namespace Repositories
 
         public Product GetProductById(int id)
         {
-           return ProductDAO.FindProductById(id);
+            return ProductDAO.FindProductById(id);
         }
 
         public void DeleteProduct(Product product)
