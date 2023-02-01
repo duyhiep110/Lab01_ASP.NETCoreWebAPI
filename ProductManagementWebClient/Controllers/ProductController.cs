@@ -30,5 +30,21 @@ namespace ProductManagementWebClient.Controllers
             List<Product> products = JsonSerializer.Deserialize<List<Product>>(strData,options);
             return View(products);
         }
+
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        public IActionResult Details(int id)
+        {
+            return View();
+
+        }
+
+        public IActionResult Delete()
+        {
+            return View();
+        }
     }
 }

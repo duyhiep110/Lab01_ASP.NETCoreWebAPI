@@ -38,8 +38,8 @@
                     @item.UnitPrice
                 </td>
                 <td>
-                    @Html.ActionLink("Details","Details",new {/* id=item.PrimaryKey*/}) |
-                    @Html.ActionLink("Delete","Delete",new {/* id=item.PrimaryKey*/}) 
+                    <a asp-action="Details" asp-id="@item.ProductId">Detail</a> |
+                    <a asp-action="Delete" asp-id="@item.ProductId">Delete</a>
                 </td>
             </tr>
         }
