@@ -1,13 +1,18 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using AutoMapper;
 using BusinessObjects;
+using BusinessObjects.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using Repositories;
 
 namespace ProductManagementWebClient.Controllers
 {
     public class ProductController : Controller
     {
         private readonly HttpClient _httpClient;
+
+        private IProductRepository productsRepository = new ProductRepository();
 
         private string ProductApiUrl = "";
 
@@ -33,18 +38,62 @@ namespace ProductManagementWebClient.Controllers
 
         public IActionResult Create()
         {
+            List<Category> categories = productsRepository.GetCategories();
+            ViewData["Category"] = categories;
             return View();
         }
 
-        public IActionResult Details(int id)
+        public IActionResult AddProduct([FromForm] Product product)
         {
-            return View();
+            productsRepository.SaveProduct(product);
+            return Redirect("/Product/Index");
+        }
+
+        public IActionResult EditProduct([FromForm] Product product)
+        {
+            productsRepository.UpdateProduct(product);
+            return Redirect("/Product/Index");
+        }
+
+        public IActionResult Edit(int id)
+        {
+            var product = productsRepository.GetProductById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            List<Category> categories = productsRepository.GetCategories();
+            ViewData["Category"] = categories;
+            return View(product);
+        }
+
+        public async Task<IActionResult> Details(int id)
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(ProductApiUrl);
+            string strData = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            List<Product> products = JsonSerializer.Deserialize<List<Product>>(strData, options);
+            Product product = products[id];
+            if(product == null)
+            {
+                return NotFound();
+            }
+            return View(product);
 
         }
 
-        public IActionResult Delete()
+        public IActionResult Delete(int id)
         {
-            return View();
+            var product = productsRepository.GetProductById(id);
+            if (product == null)
+            {
+                return NotFound();
+            }
+            productsRepository.DeleteProduct(product);
+            return Redirect("/Product/Index");
         }
     }
 }
