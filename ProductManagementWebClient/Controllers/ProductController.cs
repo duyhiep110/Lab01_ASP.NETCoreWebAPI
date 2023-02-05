@@ -76,7 +76,7 @@ namespace ProductManagementWebClient.Controllers
                 PropertyNameCaseInsensitive = true
             };
             List<Product> products = JsonSerializer.Deserialize<List<Product>>(strData, options);
-            Product product = products[id];
+            Product product = products.FirstOrDefault(p => p.ProductId == id);
             if(product == null)
             {
                 return NotFound();

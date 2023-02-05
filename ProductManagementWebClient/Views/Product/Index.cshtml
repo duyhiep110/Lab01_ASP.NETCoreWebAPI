@@ -38,7 +38,7 @@
                     @item.UnitPrice
                 </td>
                 <td>
-                    <a asp-action="Details" asp-id="@item.ProductId">Detail</a> |
+                    <a asp-controller="Product" asp-action="Details" asp-route-id="@item.ProductId">Detail</a> |
                     <a asp-controller="Product" asp-action="Delete" asp-route-id="@item.ProductId">Delete</a>
                 </td>
             </tr>
