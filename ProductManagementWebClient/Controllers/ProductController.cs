@@ -12,70 +12,72 @@ namespace ProductManagementWebClient.Controllers
     {
         private readonly HttpClient _httpClient;
 
-        private IProductRepository productsRepository = new ProductRepository();
+        //private IProductRepository productsRepository = new ProductRepository();
 
-        private string ProductApiUrl = "";
+        private string ProductApiUrl;
+
+        private string CategoryApiUrl;
 
         public ProductController()
         {
             _httpClient = new HttpClient();
             var contentType = new MediaTypeWithQualityHeaderValue("application/json");
             _httpClient.DefaultRequestHeaders.Accept.Add(contentType);
-            ProductApiUrl = "https://localhost:7189/api/products";
+            ProductApiUrl = "https://localhost:7189/api/Products";
+            CategoryApiUrl = "https://localhost:7189/api/Category";
         }
 
+        [HttpGet]
         public async Task<IActionResult> Index()
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(ProductApiUrl);
-            string strData = await response.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            List<Product> products = JsonSerializer.Deserialize<List<Product>>(strData,options);
+            List<Product> products = await GetProducts();
             return View(products);
         }
 
-        public IActionResult Create()
+        [HttpGet]
+        public async Task<IActionResult> Create()
         {
-            List<Category> categories = productsRepository.GetCategories();
-            ViewData["Category"] = categories;
+            ViewData["Category"] = await GetCategories();
             return View();
         }
 
-        public IActionResult AddProduct([FromForm] Product product)
+        [HttpPost]
+        public async Task<IActionResult> AddProduct([FromForm] ProductDto product)
         {
-            productsRepository.SaveProduct(product);
+            using(var respone = await _httpClient.PostAsJsonAsync(ProductApiUrl, product))
+            {
+                string apiResponse = await respone.Content.ReadAsStringAsync();
+            }
             return Redirect("/Product/Index");
         }
 
-        public IActionResult EditProduct([FromForm] Product product)
+        public async Task<IActionResult> EditProduct([FromForm] ProductDto product)
         {
-            productsRepository.UpdateProduct(product);
+            using (var respone = await _httpClient.PutAsJsonAsync(ProductApiUrl + "/id?id=" + product.ProductId, product))
+            {
+                string apiResponse = await respone.Content.ReadAsStringAsync();
+            }
             return Redirect("/Product/Index");
         }
 
-        public IActionResult Edit(int id)
+        [HttpGet]
+        public async Task<IActionResult> Edit(int? id)
         {
-            var product = productsRepository.GetProductById(id);
-            if (product == null)
+            
+            ViewData["Category"] = await GetCategories();
+            List<Product> products = await GetProducts();
+            Product product = products.FirstOrDefault(p => p.ProductId == id);
+            if(product == null)
             {
                 return NotFound();
             }
-            List<Category> categories = productsRepository.GetCategories();
-            ViewData["Category"] = categories;
             return View(product);
         }
 
-        public async Task<IActionResult> Details(int id)
+        [HttpGet]
+        public async Task<IActionResult> Details(int? id)
         {
-            HttpResponseMessage response = await _httpClient.GetAsync(ProductApiUrl);
-            string strData = await response.Content.ReadAsStringAsync();
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            List<Product> products = JsonSerializer.Deserialize<List<Product>>(strData, options);
+            List<Product> products = await GetProducts();
             Product product = products.FirstOrDefault(p => p.ProductId == id);
             if(product == null)
             {
@@ -85,15 +87,39 @@ namespace ProductManagementWebClient.Controllers
 
         }
 
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var product = productsRepository.GetProductById(id);
+            List<Product> products = await GetProducts();
+            Product product = products.FirstOrDefault(p => p.ProductId == id);
             if (product == null)
             {
                 return NotFound();
             }
-            productsRepository.DeleteProduct(product);
+            String url = ProductApiUrl + "/id?id=" + id;
+            await _httpClient.DeleteAsync(url);
             return Redirect("/Product/Index");
+        }
+
+        private async Task<List<Category>> GetCategories()
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(CategoryApiUrl);
+            string strData = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            return JsonSerializer.Deserialize<List<Category>>(strData, options);
+        }
+
+        private async Task<List<Product>> GetProducts()
+        {
+            HttpResponseMessage response = await _httpClient.GetAsync(ProductApiUrl);
+            string strData = await response.Content.ReadAsStringAsync();
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            return JsonSerializer.Deserialize<List<Product>>(strData, options);
         }
     }
 }

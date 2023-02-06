@@ -22,7 +22,7 @@ namespace ProductManagementAPI.Controllers
         //Get: api/Products
         [HttpGet]
         public List<Product> GetProducts() => productsRepository.GetProducts();
-        
+
 
         //Post :ProductsController/Products
         [HttpPost]
